@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "basic": {
+    "name": "Ultima: Memento",
+    "description": "AMP Generic template for Ultima: Memento shard. Windows runs World.exe; Linux runs WorldLinux.exe via Mono.",
+    "author": "Mitch + ChatGPT",
+    "appUrl": "https://github.com/Jascen/ultima-memento",
+    "osSupport": [
+      "Windows",
+      "Linux"
+    ]
+  },
+  "management": {
+    "type": "StandardIO",
+    "console": {
+      "read": true,
+      "write": true
+    }
+  },
+  "networking": {
+    "ports": [
+      {
+        "name": "Game",
+        "type": "Application",
+        "protocol": "TCP"
+      }
+    ]
+  },
+  "updates": {
+    "source": "NotApplicable"
+  },
+  "settings": [
+    {
+      "displayName": "Listen Port",
+      "category": "Networking",
+      "description": "TCP port for UO clients",
+      "field": "listenport",
+      "input": "Number",
+      "default": 2593,
+      "includeInArgs": false
+    }
+  ],
+  "startup": {
+    "windowsExecutable": "World\\World.exe",
+    "linuxExecutable": "mono",
+    "linuxArgs": "World/WorldLinux.exe",
+    "mode": "Standard",
+    "argDelimiter": " ",
+    "args": "",
+    "workingDirectory": ".",
+    "readyCheck": {
+      "type": "WaitForMessageRegex",
+      "pattern": "^Listening: .*:(?:[Pp]ort )?(?:2593|{{listenport}})$"
+    }
+  },
+  "shutdown": {
+    "method": "CTRL_C"
+  },
+  "events": {
+    "readyRegex": "^Listening: .*:(?:[Pp]ort )?(?:2593|{{listenport}})$",
+    "ignoreRegex": "^\\s*$"
+  }
+}

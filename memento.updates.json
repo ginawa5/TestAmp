@@ -1,0 +1,93 @@
+{
+  "stages": [
+    {
+      "UpdateStageName": "Backup persistent data (Windows)",
+      "UpdateSourcePlatform": "Windows",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "powershell.exe",
+      "UpdateSourceArgs": "-NoProfile -ExecutionPolicy Bypass -Command \"try{ $ts=Get-Date -Format 'yyyyMMdd-HHmmss'; New-Item -ItemType Directory -Force -Path '_backups' | Out-Null; $targets=@('World\\Saves','World\\Logs','World\\Data\\Accounts'); $existing=$targets | Where-Object { Test-Path $_ }; if($existing.Count -gt 0){ Compress-Archive -Path $existing -DestinationPath (\"_backups/memento-$ts.zip\") -Force } } catch { Write-Host $_.Exception.Message }\""
+    },
+    {
+      "UpdateStageName": "Backup persistent data (Linux)",
+      "UpdateSourcePlatform": "Linux",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "/bin/bash",
+      "UpdateSourceArgs": "-lc \"set -e; ts=$(date +%Y%m%d-%H%M%S); mkdir -p _backups; zip -qr _backups/memento-$ts.zip World/Saves World/Logs World/Data/Accounts 2>/dev/null || true\""
+    },
+    {
+      "UpdateStageName": "Fetch latest source (main)",
+      "UpdateSourcePlatform": "All",
+      "UpdateSource": "FetchURL",
+      "UpdateSourceData": "https://github.com/Jascen/ultima-memento/archive/refs/heads/main.zip",
+      "UpdateSourceTarget": "src.zip",
+      "UnzipUpdateSource": true,
+      "OverwriteExistingFiles": true
+    },
+    {
+      "UpdateStageName": "Fetch latest release (server zip)",
+      "UpdateSourcePlatform": "All",
+      "UpdateSource": "GithubRelease",
+      "UpdateSourceArgs": "Jascen/ultima-memento",
+      "UpdateSourceData": "Ultima-Memento-Server.zip",
+      "UpdateSourceTarget": "release.zip",
+      "UnzipUpdateSource": true,
+      "OverwriteExistingFiles": true
+    },
+    {
+      "UpdateStageName": "Windows: refresh code only",
+      "UpdateSourcePlatform": "Windows",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "powershell.exe",
+      "UpdateSourceArgs": "-NoProfile -ExecutionPolicy Bypass -Command \"`$ErrorActionPreference='Stop'; $src=Get-ChildItem -Directory | Where-Object { $_.Name -like 'ultima-memento-*' } | Select-Object -First 1; if(-not $src){throw 'No extracted source folder found'}; New-Item -ItemType Directory -Force -Path 'World','World\\Source','World\\Data' | Out-Null; Copy-Item -Recurse -Force (Join-Path $src.FullName 'World\\Source\\*') 'World\\Source\\'\""
+    },
+    {
+      "UpdateStageName": "Linux: refresh code only",
+      "UpdateSourcePlatform": "Linux",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "/bin/bash",
+      "UpdateSourceArgs": "-lc \"set -e; src=$(find . -maxdepth 1 -type d -name 'ultima-memento-*' | head -n1); [ -n \\\"$src\\\" ]; mkdir -p World/Source World/Data; cp -rfT \\\"$src/World/Source\\\" World/Source\""
+    },
+    {
+      "UpdateStageName": "Windows: copy Data/Files from release",
+      "UpdateSourcePlatform": "Windows",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "powershell.exe",
+      "UpdateSourceArgs": "-NoProfile -ExecutionPolicy Bypass -Command \"`$ErrorActionPreference='Stop'; $cand=(Get-ChildItem -Recurse -Directory -Filter 'World' | Where-Object { Test-Path (Join-Path $_.FullName 'Data/Files') } | Select-Object -First 1); if(-not $cand){ throw 'Unable to locate World/Data/Files in release payload' }; $from=Join-Path $cand.FullName 'Data/Files'; New-Item -ItemType Directory -Force -Path 'World/Data' | Out-Null; Copy-Item -Recurse -Force $from 'World/Data/Files'\""
+    },
+    {
+      "UpdateStageName": "Linux: copy Data/Files from release",
+      "UpdateSourcePlatform": "Linux",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "/bin/bash",
+      "UpdateSourceArgs": "-lc \"set -e; src=$(find . -type d -path '*/World/Data/Files' | head -n1); [ -n \\\"$src\\\" ]; mkdir -p World/Data; cp -rT \\\"$src\\\" World/Data/Files\""
+    },
+    {
+      "UpdateStageName": "Windows: compile via repo tool",
+      "UpdateSourcePlatform": "Windows",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "cmd.exe",
+      "UpdateSourceArgs": "/c World\\Source\\Tools\\compile-world-win.bat"
+    },
+    {
+      "UpdateStageName": "Windows: verify World.exe",
+      "UpdateSourcePlatform": "Windows",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "cmd.exe",
+      "UpdateSourceArgs": "/c if not exist World\\World.exe exit /b 1"
+    },
+    {
+      "UpdateStageName": "Linux: compile via repo tool",
+      "UpdateSourcePlatform": "Linux",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "/bin/bash",
+      "UpdateSourceArgs": "-lc \"set -e; chmod +x World/Source/Tools/compile-world-linux.sh; cd World; ./Source/Tools/compile-world-linux.sh\""
+    },
+    {
+      "UpdateStageName": "Linux: verify WorldLinux.exe",
+      "UpdateSourcePlatform": "Linux",
+      "UpdateSource": "Executable",
+      "UpdateSourceData": "/bin/bash",
+      "UpdateSourceArgs": "-lc \"test -f World/WorldLinux.exe\""
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "displayName": "Ultima: Memento",
+  "category": "MMO",
+  "imageUrl": "https://raw.githubusercontent.com/CubeCoders/AMPTemplates/main/_meta/uo-odyssey-460x215.jpg",
+  "longDescription": "Fetches latest source + release data, preserves runtime data, compiles per-OS using repo scripts (compile-world-win.bat / compile-world-linux.sh). Starts World.exe on Windows, WorldLinux.exe on Linux (via Mono).",
+  "tags": [
+    "ultima-online",
+    "uo",
+    "servuo",
+    "runuo",
+    "memento"
+  ]
+}
